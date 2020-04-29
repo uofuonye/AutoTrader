@@ -54,7 +54,7 @@ class MarketTracker:
         return stocksToSell, stocksToBuy, stocksToKeep
 
 
-    def RestTracker(self):
+    def Reset(self):
         self.tracker = {}
         self.trackerSnapshot = []
         self.trackerIndex = 0
