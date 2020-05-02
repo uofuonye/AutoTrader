@@ -69,6 +69,11 @@ class MarketUtil:
         for position in positions:
             if position.symbol in symbols:
                 self.SellStock(account, position.symbol, position.qty)
+    
+    def EmptyStocks(self, account):
+        positions = account.GetPositions()
+        for position in positions:
+            self.SellStock(account, position.symbol, position.qty)
 
     def GetMarketClock(self, account):
         return account.api.get_clock()

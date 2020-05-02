@@ -15,8 +15,9 @@ class Market:
         self.util = MarketUtil()
         self.marketTracker = MarketTracker()
 
-    def Run(self, account, strategy=MarketStrategy.Momentum, ):
-        lookBackWindowInMins = 5
+    def Run(self, account, strategy=MarketStrategy.Momentum):
+        lookBackWindowInMins = 2
+        marketCloseWindowInMins = 10
         while True:
             account.CloseAllOrders()
             self.WaitForOpen(account)
@@ -24,6 +25,11 @@ class Market:
             while self.util.IsMarketOpen(account):
                 self.MomentumMarket(account, 'minute', lookBackWindowInMins)
                 time.sleep(60 * lookBackWindowInMins)
+                if self.IsMarketAboutToClose(account, marketCloseWindowInMins):
+                    print("Market is about to close...selling all stocks")
+                    self.util.EmptyStocks(account)
+                    print("Sleeping until market close.")
+                    time.sleep(60 * marketCloseWindowInMins)
             print("Market has closed!")
             self.marketTracker.Reset()
 
@@ -38,6 +44,7 @@ class Market:
         print("Keeping stocks: " + ', '.join(stocksToKeep.keys()))
 
     def Sell(self, account, stocksToSell):
+        stocksToSell = {k: v for k, v in stocksToSell.items() if v <0} #sell the ones which are recommended and have a negative change
         symbolsToSell = stocksToSell.keys()
         print("Selling stocks: " + ', '.join(symbolsToSell))
         self.util.SellAllStocks(account, symbolsToSell)
@@ -56,7 +63,6 @@ class Market:
                  (total_increase_sum * live_prices[symbol]))
             # Get the floor since we can't buy fractional shares
             shares_to_buy[symbol] = math.floor(shares_to_buy[symbol])
-        print(shares_to_buy)
         for symbol in shares_to_buy:
             if(shares_to_buy[symbol]> 0):
                 self.util.BuyStock(account, symbol, shares_to_buy[symbol])
@@ -73,3 +79,16 @@ class Market:
             print(str(timeToOpen) + " minutes until market opens.")
             time.sleep(60)
             isOpen = self.util.IsMarketOpen(account)
+    
+    def IsMarketAboutToClose(self, account, marketCloseWindowInMins):
+        clock = self.util.GetMarketClock(account)
+        closingTime = clock.next_close.replace(
+                tzinfo=datetime.timezone.utc).timestamp()
+        currTime = clock.timestamp.replace(
+            tzinfo=datetime.timezone.utc).timestamp()
+        timeToClose = closingTime - currTime
+        if(timeToClose < (60 * marketCloseWindowInMins)):
+            return True
+        else:
+            return False
+
