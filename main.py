@@ -2,8 +2,8 @@ import alpaca_trade_api as tradeapi
 from src.Account import Account
 from src.Market import Market
 
-API_KEY = 'PK0UL2ZY0EGTQMI1MF84'
-API_SECRET = 'jdxvG/S1oCwKPiIXvBjwGYW00uLm1HejcsObk7UR'
+API_KEY = ''
+API_SECRET = ''
 APCA_API_BASE_URL = 'https://paper-api.alpaca.markets'
 VERSION = 'v2'
 
